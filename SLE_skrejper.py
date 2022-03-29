@@ -25,6 +25,21 @@ soup = BeautifulSoup(html, 'html.parser')
 podaci_loviste = soup.find_all("div",class_ = "form-group")
 #ovo treba pospremiti
 
+#pospremanje
+podaci_loviste_label = []
+for lab in soup.find_all(name = "label"):
+    podaci_loviste_label.append(lab.text)
+
+for c,lab in enumerate(podaci_loviste):
+    string2 = lab.text
+    string2 = string2.split("\n")
+    string2 = [item for item in string2 if item not in podaci_loviste_label]
+    string2 = (list(filter(None,string2)))
+    string2 = [name for name in string2 if name.strip()]
+    string2 = [s.replace("                                ","") for s in string2]
+    print(string2)
+#sad treba spojiti te dvije liste u tablicu
+
 ugovor = driver.find_element(By.XPATH, '//*[@id="tblUgovori"]/tbody/tr/td[6]/a')
 ugovor.click()
 
@@ -32,6 +47,9 @@ html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
 podaci_ugovor = soup.find_all("div",class_ = "form-group")
 #ovo treba isto pospremiti
+print("PODACI UGOVOR")
+print(podaci_ugovor)
+
 
 pregled_lgpova = driver.find_element(By.XPATH, '//*[@id="tblUgovori"]/tbody/tr/td[4]/a')
 pregled_lgpova.click()
@@ -55,7 +73,7 @@ lgo2_smjernice = driver.find_element(By.XPATH, '//*[@id="headingTwo_1"]/h4/a')
 broj_divljaci = int(re.findall('\d',lgo2_smjernice.text)[1])
 lgo2_smjernice.click()
 time.sleep(1)
-"""
+
 #scraping the main game data from LGO2 to table
 i = 0
 while i < broj_divljaci:
@@ -85,7 +103,7 @@ while i < broj_divljaci:
     time.sleep(1)
     lgo2_smjernice.click()
     time.sleep(1)
-"""
+
 lgo7b_smjernice = driver.find_element(By.XPATH, '//*[@id="headingFour_1"]/h4/a')
 lgo7b_smjernice.click()
 #again, the number of species of the small game

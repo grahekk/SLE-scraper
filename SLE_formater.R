@@ -7,12 +7,12 @@ install.packages("devtools")
 devtools::install_github("kassambara/r2excel")
 install.packages("writexl")
 library(writexl)
-
+install.packages("writexl")
 #list.files(pattern = "loviste_lgo1")
 #loviste_lgo1_fajlovi <- list.files(pattern = "loviste_lgo1")
 #lgo1 <- map(loviste_lgo1_fajlovi, read_xlsx)
 
-x <- read_xlsx("gostinac_loviste_lgo1.xlsx")
+x <- read_xlsx("vugrovec_loviste_lgo1.xlsx")
 x <- x %>% row_to_names(row_number = 1)
 x <- x[-c(1,2),-1]
 x$Ha <- x$Ha %>% as.numeric()
@@ -21,11 +21,11 @@ x %>%
   filter(`Naziv površine`!= "Sveukupno lovište  prema vlasništvu" &
            `Naziv površine`!= "Sveukupne lovne površine" & 
            `Naziv površine`!= "Površine opisane granicom lovišta" &
-         `Zemljovlasnicko razmjerje` != '∑') %>% 
-  group_by(`Naziv površine`,`Vrsta površine`) %>% summarise(Ha = sum(Ha))
+         `Zemljovlasničko razmjerje` != '∑') %>% 
+  group_by(`Naziv površine`,`Vrsta površine`) %>% summarise(Ha = sum(Ha)) -> y
 
 x %>% 
-  filter(`Zemljovlasnicko razmjerje` != '∑')%>% 
+  filter(`Zemljovlasničko razmjerje` != '∑')%>% 
   group_by(`Naziv površine`) %>% 
   drop_na %>% 
   summarise(Ha = sum(Ha)) %>% 
@@ -33,7 +33,7 @@ x %>%
   rename("Vrsta površine" = `Naziv površine`, "Ha"= "Ha") -> y
 
 x %>% 
-  filter(`Zemljovlasnicko razmjerje` != '∑')%>%
+  filter(`Zemljovlasničko razmjerje` != '∑')%>%
   group_by(`Vrsta površine`) %>% 
   drop_na() %>% 
   summarise(Ha = sum(Ha)) %>% 
@@ -47,7 +47,7 @@ x %>%
         `Vrsta površine` == "Poljoprivredno" | 
         `Vrsta površine` == "Tekućice" | 
         `Vrsta površine` == "Stajaćice") %>% 
-  filter(`Zemljovlasnicko razmjerje` != '∑')%>% 
+  filter(`Zemljovlasničko razmjerje` != '∑')%>% 
   group_by(`Vrsta površine`) %>% 
   drop_na() %>% 
   summarise(Ha = sum(Ha)) %>% 

@@ -1,0 +1,9 @@
+env
+.idea
+.RData
+.Rhistory
+chromedriver.exe
+.Rproj*
+*.xlsx
+*.csv
+*.Rproj
