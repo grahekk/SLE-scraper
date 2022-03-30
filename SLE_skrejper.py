@@ -30,15 +30,20 @@ podaci_loviste_label = []
 for lab in soup.find_all(name = "label"):
     podaci_loviste_label.append(lab.text)
 
-for c,lab in enumerate(podaci_loviste):
-    string2 = lab.text
-    string2 = string2.split("\n")
-    string2 = [item for item in string2 if item not in podaci_loviste_label]
+podaci_loviste_label_drugi = []
+for lab in podaci_loviste:
+    string2 = lab.text.split("\n")
     string2 = (list(filter(None,string2)))
     string2 = [name for name in string2 if name.strip()]
     string2 = [s.replace("                                ","") for s in string2]
-    print(string2)
-#sad treba spojiti te dvije liste u tablicu
+    if len(string2)>2:
+        string2[1:] = ["".join(string2[1:])]
+    podaci_loviste_label_drugi.append(string2)
+
+df = pd.DataFrame(podaci_loviste_label_drugi).transpose()
+df.columns = df.iloc[0]
+df = df[1:]
+#df.to_excel((LOVISTEZAEXPORT + "_podaci o lovistu.xlsx"))
 
 ugovor = driver.find_element(By.XPATH, '//*[@id="tblUgovori"]/tbody/tr/td[6]/a')
 ugovor.click()
