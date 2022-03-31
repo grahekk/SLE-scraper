@@ -22,7 +22,7 @@ loviste.click()
 
 html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
-"""
+
 #saving the metadata for hunting grounds
 podaci_loviste = soup.find_all("div",class_ = "form-group")
 podaci_loviste_label = []
@@ -43,8 +43,8 @@ df = pd.DataFrame(podaci_loviste_label_drugi).transpose()
 df.columns = df.iloc[0]
 df = df[1:]
 #df.to_excel((LOVISTEZAEXPORT + "_podaci o lovistu.xlsx"))
-#tablica = df
-"""
+tablica = df
+
 
 ugovor = driver.find_element(By.XPATH, '//*[@id="tblUgovori"]/tbody/tr/td[6]/a')
 ugovor.click()
@@ -64,9 +64,12 @@ for lab in podaci_ugovor:
         string2[1:] = ["".join(string2[1:])]
     podaci_ugovor_label.append(string2)
 
+podaci_ugovor_label=podaci_ugovor_label[1:]
 df = pd.DataFrame(podaci_ugovor_label).transpose()
 df.columns = df.iloc[0]
 df = df[1:]
+tablica = pd.concat([tablica,df], axis=1)
+print(tablica)
 
 #df.to_excel((LOVISTEZAEXPORT + "_podaci o ugovoru.xlsx"))
 
