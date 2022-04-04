@@ -23,11 +23,14 @@ loviste.click()
 html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
 
+"""
 #saving the metadata for hunting grounds
 podaci_loviste = soup.find_all("div",class_ = "form-group")
 podaci_loviste_label = []
 for lab in soup.find_all(name = "label"):
     podaci_loviste_label.append(lab.text)
+
+#i'm still missing the "tip reljefa info"
 
 podaci_loviste_label_drugi = []
 for lab in podaci_loviste:
@@ -44,11 +47,11 @@ df.columns = df.iloc[0]
 df = df[1:]
 #df.to_excel((LOVISTEZAEXPORT + "_podaci o lovistu.xlsx"))
 tablica = df
-
+"""
 
 ugovor = driver.find_element(By.XPATH, '//*[@id="tblUgovori"]/tbody/tr/td[6]/a')
 ugovor.click()
-
+"""
 #contract data
 html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
@@ -70,10 +73,8 @@ df.columns = df.iloc[0]
 df = df[1:]
 tablica = pd.concat([tablica,df], axis=1)
 print(tablica)
-
+"""
 #df.to_excel((LOVISTEZAEXPORT + "_podaci o ugovoru.xlsx"))
-
-
 
 pregled_lgpova = driver.find_element(By.XPATH, '//*[@id="tblUgovori"]/tbody/tr/td[4]/a')
 pregled_lgpova.click()
@@ -99,6 +100,7 @@ lgo2_smjernice.click()
 time.sleep(1)
 
 #scraping the main game data from LGO2 to table
+lgo2_divljac = []
 i = 0
 while i < broj_divljaci:
     i = i+1
@@ -110,23 +112,37 @@ while i < broj_divljaci:
     soup = BeautifulSoup(html, 'html.parser')
     podaci_divljac = soup.find_all("div", class_ = "form-group")
 
-    #tekst za vrstu divljaci
-    tekst = soup.get_text(",",strip = True)
-    lista = tekst.split(",")
-    lista = lista[17:47]
-    lista1 = lista[::2]
-    lista2 = lista[1::2]
+    ime_divljaci = driver.find_element(By.XPATH, '/html/body/section/div/div[2]/div/div/div[2]/div[1]/div[1]/h4/span')
+    print(ime_divljaci.text)
+    podaci_divljac_label = []
+    for lab in podaci_divljac:
+        string2 = lab.text.split("\n")
+        string2 = (list(filter(None, string2)))
+        string2 = [name for name in string2 if name.strip()]
+        string2 = [s.replace("                                ", "") for s in string2]
+        string2 = [s.replace("              ", "") for s in string2]
+        if len(string2) > 2:
+            string2[1:] = ["".join(string2[1:])]
+        if "Dobna struktura" in string2:
+            continue
+        podaci_divljac_label.append(string2)
+    lgo2_divljac.append(podaci_divljac_label)
+
+    #for lab in soup.find_all(name="label"):
+        #podaci_loviste_label.append(lab.text)
 
     #dobivanje tablice za vrstu divljaci
-    d = {'prvi stupac':lista1, 'drugi stupac': lista2}
-    df = pd.DataFrame(d)
-    df.to_excel((LOVISTEZAEXPORT + "_loviste_lgo2_"+lista2[0]+".xlsx"))
+    #d = {'prvi stupac':lista1, 'drugi stupac': lista2}
+    #df = pd.DataFrame(d)
+    #df.to_excel((LOVISTEZAEXPORT + "_loviste_lgo2_"+lista2[0]+".xlsx"))
 
     driver.back()
     lgo2_smjernice = driver.find_element(By.XPATH, '//*[@id="headingTwo_1"]/h4/a')
     time.sleep(1)
     lgo2_smjernice.click()
     time.sleep(1)
+
+print(lgo2_divljac)
 
 lgo7b_smjernice = driver.find_element(By.XPATH, '//*[@id="headingFour_1"]/h4/a')
 lgo7b_smjernice.click()
