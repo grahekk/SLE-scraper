@@ -1,8 +1,10 @@
 import re
 import time
-from polling2 import poll
+from typing import Any
+
 import pandas as pd
 from bs4 import BeautifulSoup
+from polling2 import poll
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -16,7 +18,7 @@ chrome_options.add_argument("--headless")
 
 driver = webdriver.Chrome(options=chrome_options)
 #driver = webdriver.Chrome()
-to_scrape = ["česma","gostinac", "koprivnica"]
+to_scrape = ["vugrovec","belovar"]
 
 #the scraping
 for count, scrape in enumerate(to_scrape):
@@ -97,8 +99,6 @@ for count, scrape in enumerate(to_scrape):
     lgo1_iskaz.click()
     #time.sleep(0.5)
     lgo1 = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="collapseOne_1"]/div/dd/a')))
-
-    #lgo1 = driver.find_element(By.XPATH, '//*[@id="collapseOne_1"]/div/dd/a')
     lgo1.click()
 
     html = driver.page_source
@@ -110,20 +110,17 @@ for count, scrape in enumerate(to_scrape):
     #LGO2 falling list
     driver.back()
     lgo2_smjernice = driver.find_element(By.XPATH, '//*[@id="headingTwo_1"]/h4/a')
-    #the number of iterations or the number of the game species
     broj_divljaci = int(re.findall(r'\d',lgo2_smjernice.text)[1])
     lgo2_smjernice.click()
-    #time.sleep(1)
 
     #scraping the main game data from LGO2 to table
-    lgo2_divljac = []
+    data_lgo2 = []
     i = 0
     while i < broj_divljaci:
         i = i+1
         divljacpath = '//*[@id="collapseTwo_1"]/div/dd['+str(i)+']/a'
         divljac = poll(lambda: driver.find_element(By.XPATH, divljacpath), step=0.5, timeout=7)
         time.sleep(0.1)
-        #divljac = driver.find_element(By.XPATH, divljacpath)
         divljac.click()
 
         html = driver.page_source
@@ -131,7 +128,8 @@ for count, scrape in enumerate(to_scrape):
         podaci_divljac = soup.find_all("div", class_ = "form-group")
 
         ime_divljaci = driver.find_element(By.XPATH, '/html/body/section/div/div[2]/div/div/div[2]/div[1]/div[1]/h4/span').text
-        podaci_divljac_label = []
+        data_lgo2_label = []
+        one_row_lgo2: list[list[Any]] = []
         for lab in podaci_divljac:
             string2 = lab.text.split("\n")
             string2 = (list(filter(None, string2)))
@@ -142,11 +140,23 @@ for count, scrape in enumerate(to_scrape):
                 string2[1:] = ["".join(string2[1:])]
             if "Dobna struktura" in string2:
                 continue
-            string2[0] = ime_divljaci + " - " + string2[0]
-            podaci_divljac_label.append(string2)
-        lgo2_divljac.append(podaci_divljac_label)
+            one_row_lgo2.append(list(string2))
 
-        df = pd.DataFrame(podaci_divljac_label).transpose()
+            string2[0] = ime_divljaci + " - " + string2[0]
+            data_lgo2_label.append(string2)
+
+        #single table for lgo2
+        one_row_lgo2.insert(0,["Ime divljaci", ime_divljaci])
+        data_lgo2 = pd.DataFrame(one_row_lgo2).transpose()
+        data_lgo2.columns = data_lgo2.iloc[0]
+        data_lgo2 = data_lgo2[1:]
+        if i == 1:
+            table_lgo2 = data_lgo2
+        else:
+            table_lgo2 = pd.merge(table_lgo2, data_lgo2, how="outer")
+
+        #one row for database
+        df = pd.DataFrame(data_lgo2_label).transpose()
         df.columns = df.iloc[0]
         df = df[1:]
         tablica = pd.concat([tablica, df], axis=1)
@@ -157,10 +167,11 @@ for count, scrape in enumerate(to_scrape):
         #time.sleep(1)
         lgo2_smjernice.click()
         time.sleep(0.3)
+    table_lgo2.to_excel(scrape + "_lgo2.xlsx")
+    print(table_lgo2)
 
     lgo7b_smjernice = driver.find_element(By.XPATH, '//*[@id="headingFour_1"]/h4/a')
     lgo7b_smjernice.click()
-    #again, the number of species of the small game
     broj_divljaci = int("".join(map(str, re.findall(r"\(([^)]*)\)[^(]*$", lgo7b_smjernice.text))))
 
     #list of small game species
@@ -175,7 +186,6 @@ for count, scrape in enumerate(to_scrape):
     tablica['sitna_divljac'] = ', '.join(map(str, sitna_divljac))
 
     #table of technical objects on hunting ground
-
     lgo11_objekti = driver.find_element(By.XPATH, '//*[@id="headingFive_1"]/h4/a')
     lgo11_objekti.click()
     time.sleep(0.5)
@@ -191,7 +201,7 @@ for count, scrape in enumerate(to_scrape):
     df = df['VRSTA OBJEKTA'].value_counts().to_frame().transpose().rename(index={"VRSTA OBJEKTA":1})
     tablica = pd.concat([tablica, df], axis=1)
 
-    tablica.to_excel("Loviste_redak_gotov.xlsx")
+    #export of the table
     if count == 0:
         baza_podataka = tablica
         baza_podataka.index = [1]
