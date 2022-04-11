@@ -17,19 +17,18 @@ chrome_options.add_argument("--headless")
 driver = webdriver.Chrome(options=chrome_options)
 #driver = webdriver.Chrome()
 to_scrape = ["česma","gostinac", "koprivnica"]
-baza_podataka = pd.DataFrame
 
+#the scraping
 for count, scrape in enumerate(to_scrape):
+    iterative_start = time.time()
     driver.get(base_url)
     print(scrape, count)
 
     #time.sleep(0.1)
-
-    #LOVISTEZAEXPORT = input("Ime lovista: ")
-    LOVISTEZAEXPORT = scrape
+    #scrape = input("Ime lovista: ")
 
     search_box = driver.find_element(By.TAG_NAME, "input.form-control.input-sm")
-    search_box.send_keys(LOVISTEZAEXPORT)
+    search_box.send_keys(scrape)
     time.sleep(1)
     loviste = poll(lambda: driver.find_element(By.XPATH, '//*[@id="tblLovista"]/tbody/tr/td[2]/a'), step=0.5, timeout=7)
     time.sleep(1)
@@ -59,11 +58,10 @@ for count, scrape in enumerate(to_scrape):
     tablica = df
 
     if "Ne postoje ugovori za odabrano lovište" in soup.text:
-        print("Ne postoje podaci za ", LOVISTEZAEXPORT)
+        print("The data is not available for ", scrape)
         tablica.to_excel("Loviste_redak_gotov.xlsx")
-        rn=count+1
-        #tablica = tablica.rename(index={1:rn})
-        #baza_podataka = pd.merge(left=baza_podataka, right=tablica)
+        tablica.index = [count+1]
+        baza_podataka = pd.merge(left=baza_podataka, right=tablica, how="outer")
         print(time.time() - start)
         continue
 
@@ -107,7 +105,7 @@ for count, scrape in enumerate(to_scrape):
     soup = BeautifulSoup(html, 'html.parser')
     table = soup.find_all
     df = pd.read_html(str(table))[0]
-    df.to_excel((LOVISTEZAEXPORT + "_loviste_lgo1.xlsx"))
+    df.to_excel((scrape + "_loviste_lgo1.xlsx"))
 
     #LGO2 falling list
     driver.back()
@@ -144,7 +142,7 @@ for count, scrape in enumerate(to_scrape):
                 string2[1:] = ["".join(string2[1:])]
             if "Dobna struktura" in string2:
                 continue
-            string2 = [ime_divljaci + " - " + s for s in string2]
+            string2[0] = ime_divljaci + " - " + string2[0]
             podaci_divljac_label.append(string2)
         lgo2_divljac.append(podaci_divljac_label)
 
@@ -196,17 +194,10 @@ for count, scrape in enumerate(to_scrape):
     tablica.to_excel("Loviste_redak_gotov.xlsx")
     if count == 0:
         baza_podataka = tablica
-        #baza_podataka = baza_podataka.rename(index={1:1})
         baza_podataka.index = [1]
-        baza_podataka.info()
     else:
-        rn=count+1
-        #tablica = tablica.rename(index={1:rn})
-        tablica.index = [rn]
-        tablica.info()
-        baza_podataka.info()
-        baza_podataka = pd.concat([baza_podataka, tablica], ignore_index=True)
-        #baza_podataka = pd.merge(left = baza_podataka, right = tablica)
-    print(time.time() - start)
+        tablica.index = [count+1]
+        baza_podataka = pd.merge(baza_podataka, tablica, how="outer")
+    print(round(time.time()-iterative_start,2), "/", round(time.time() - start,2))
 baza_podataka.to_excel("baza_podataka.xlsx")
 driver.close()
