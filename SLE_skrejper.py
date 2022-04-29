@@ -1,9 +1,11 @@
 import re
 import time
-from typing import Any
+from typing import Any, List, Union
 
 import pandas as pd
 from bs4 import BeautifulSoup
+from pandas import Series, DataFrame
+from pandas.core.generic import NDFrame
 from polling2 import poll
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -18,8 +20,30 @@ chrome_options.add_argument("--headless")
 
 driver = webdriver.Chrome(options=chrome_options)
 #driver = webdriver.Chrome()
-to_scrape = ["vugrovec","belovar"]
 
+
+#the part where the script gets the list of scraping objects
+driver.get(base_url)
+time.sleep(0.1)
+
+i=1
+to_scrape: list[Union[Union[Series, DataFrame, None, NDFrame], Any]] = []
+while i<56:
+    i = i+1
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+    table = soup.find_all
+    df = pd.read_html(str(table))[0]
+    df = df["Naziv"]
+    to_scrape.append(df)
+    next_button = '//*[@id="tblLovista_next"]/a'
+    driver.find_element(By.XPATH, next_button).click()
+    print(i)
+    print(df)
+    print(to_scrape)
+
+#to_scrape = ["vugrovec","belovar"]
+"""
 #the scraping
 for count, scrape in enumerate(to_scrape):
     iterative_start = time.time()
@@ -211,3 +235,4 @@ for count, scrape in enumerate(to_scrape):
     print(round(time.time()-iterative_start,2), "/", round(time.time() - start,2))
 baza_podataka.to_excel("baza_podataka.xlsx")
 driver.close()
+"""
