@@ -18,32 +18,15 @@ base_url = "https://sle.mps.hr"
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
-driver = webdriver.Chrome(options=chrome_options)
-#driver = webdriver.Chrome()
-
-
-#the part where the script gets the list of scraping objects
+#driver = webdriver.Chrome(options=chrome_options)
+driver = webdriver.Chrome()
 driver.get(base_url)
-time.sleep(0.1)
 
-i=1
-to_scrape: list[Union[Union[Series, DataFrame, None, NDFrame], Any]] = []
-while i<56:
-    i = i+1
-    html = driver.page_source
-    soup = BeautifulSoup(html, 'html.parser')
-    table = soup.find_all
-    df = pd.read_html(str(table))[0]
-    df = df["Naziv"]
-    to_scrape.append(df)
-    next_button = '//*[@id="tblLovista_next"]/a'
-    driver.find_element(By.XPATH, next_button).click()
-    print(i)
-    print(df)
-    print(to_scrape)
+with open('List_of_hunting_grounds.txt', 'r') as f:
+    to_scrape = f.read().split(",")
+f.close()
 
-#to_scrape = ["vugrovec","belovar"]
-"""
+
 #the scraping
 for count, scrape in enumerate(to_scrape):
     iterative_start = time.time()
@@ -129,7 +112,7 @@ for count, scrape in enumerate(to_scrape):
     soup = BeautifulSoup(html, 'html.parser')
     table = soup.find_all
     df = pd.read_html(str(table))[0]
-    df.to_excel((scrape + "_loviste_lgo1.xlsx"))
+    df.to_excel((scrape.replace('/','_') + "_loviste_lgo1.xlsx"))
 
     #LGO2 falling list
     driver.back()
@@ -191,8 +174,7 @@ for count, scrape in enumerate(to_scrape):
         #time.sleep(1)
         lgo2_smjernice.click()
         time.sleep(0.3)
-    table_lgo2.to_excel(scrape + "_lgo2.xlsx")
-    print(table_lgo2)
+    table_lgo2.to_excel(scrape.replace('/','_') + "_lgo2.xlsx")
 
     lgo7b_smjernice = driver.find_element(By.XPATH, '//*[@id="headingFour_1"]/h4/a')
     lgo7b_smjernice.click()
@@ -233,6 +215,6 @@ for count, scrape in enumerate(to_scrape):
         tablica.index = [count+1]
         baza_podataka = pd.merge(baza_podataka, tablica, how="outer")
     print(round(time.time()-iterative_start,2), "/", round(time.time() - start,2))
+
 baza_podataka.to_excel("baza_podataka.xlsx")
 driver.close()
-"""
