@@ -26,7 +26,7 @@ with open('List_of_hunting_grounds.txt', 'r') as f:
     to_scrape = f.read().split(",")
 f.close()
 
-
+to_scrape = ["Zverinjak", "Grabik", "Jordan"]
 #the scraping
 for count, scrape in enumerate(to_scrape):
     iterative_start = time.time()
@@ -127,7 +127,7 @@ for count, scrape in enumerate(to_scrape):
         i = i+1
         divljacpath = '//*[@id="collapseTwo_1"]/div/dd['+str(i)+']/a'
         divljac = poll(lambda: driver.find_element(By.XPATH, divljacpath), step=0.5, timeout=7)
-        time.sleep(0.1)
+        time.sleep(1)
         divljac.click()
 
         html = driver.page_source
@@ -172,7 +172,7 @@ for count, scrape in enumerate(to_scrape):
         #lgo2_smjernice = driver.find_element(By.XPATH, '//*[@id="headingTwo_1"]/h4/a')
         lgo2_smjernice = poll(lambda: driver.find_element(By.XPATH, '//*[@id="headingTwo_1"]/h4/a'), step=0.5, timeout=7)
         #time.sleep(1)
-        lgo2_smjernice.click()
+        #lgo2_smjernice.click()
         time.sleep(0.3)
     table_lgo2.to_excel(scrape.replace('/','_') + "_lgo2.xlsx")
 
